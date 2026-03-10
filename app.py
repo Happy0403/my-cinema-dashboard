@@ -128,9 +128,108 @@ def fetch_movie_poster(title, original_title=None, year=None, api_key=TMDB_API_K
 
     return FALLBACK_POSTER
 
+@st.cache_data(show_spinner=False, ttl=86400)
+def fetch_movie_details(title, original_title=None, year=None, api_key=TMDB_API_KEY):
+    if not api_key or api_key == "69018610eb3f8a4e8dca9632eb518172":
+        return "APIキーが無効です。", None
+        
+    def search_and_get_details(query_str, release_year=None):
+        url = f"{TMDB_BASE_URL}/search/movie?api_key={api_key}&query={urllib.parse.quote(query_str)}&language=ja-JP"
+        if release_year:
+            url += f"&primary_release_year={release_year}"
+        try:
+            response = requests.get(url, timeout=5)
+            if response.status_code == 200:
+                results = response.json().get('results', [])
+                if results:
+                    movie_id = results[0]['id']
+                    overview = results[0].get('overview', '')
+                    
+                    # Fetch videos
+                    vid_url = f"{TMDB_BASE_URL}/movie/{movie_id}/videos?api_key={api_key}&language=ja-JP"
+                    vid_resp = requests.get(vid_url, timeout=5)
+                    video_key = None
+                    if vid_resp.status_code == 200:
+                        vids = vid_resp.json().get('results', [])
+                        # Try to find a YouTube trailer
+                        for v in vids:
+                            if v.get('site') == 'YouTube' and v.get('type') == 'Trailer':
+                                video_key = v.get('key')
+                                break
+                    # Fallback to English videos if no Japanese trailer
+                    if not video_key:
+                        vid_url_en = f"{TMDB_BASE_URL}/movie/{movie_id}/videos?api_key={api_key}"
+                        vid_resp_en = requests.get(vid_url_en, timeout=5)
+                        if vid_resp_en.status_code == 200:
+                            vids_en = vid_resp_en.json().get('results', [])
+                            for v in vids_en:
+                                if v.get('site') == 'YouTube' and v.get('type') == 'Trailer':
+                                    video_key = v.get('key')
+                                    break
+                    
+                    if not overview:
+                        overview = "日本語のあらすじがありません。"
+                    return overview, video_key
+        except Exception:
+            pass
+        return None
+
+    # Try original title first
+    if original_title and str(original_title).strip() and str(original_title) != "nan":
+        res = search_and_get_details(str(original_title).strip(), year)
+        if res: return res
+        
+    # Fallback to Japanese title
+    if title and str(title).strip() and str(title) != "nan":
+        clean_title = str(title).strip()
+        res = search_and_get_details(clean_title, year)
+        if res: return res
+        
+        if year:
+            res = search_and_get_details(clean_title)
+            if res: return res
+
+    return "映画情報が見つかりませんでした。", None
+
 import os
 
 READ_ONLY_MODE = os.environ.get("READ_ONLY_MODE", "false").lower() == "true"
+
+@st.dialog("映画詳細", width="large")
+def show_movie_details(movie):
+    st.subheader(f"{movie['邦題']} ({movie.get('公開年', '不明')})")
+    if pd.notnull(movie.get('原題')) and str(movie['原題']).strip() and str(movie['原題']) != "nan":
+        st.markdown(f"**原題:** {movie['原題']}")
+        
+    year_str = str(movie["公開年"]).replace('年', '').strip() if pd.notnull(movie["公開年"]) else None
+    
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        poster_url = fetch_movie_poster(movie["邦題"], movie["原題"], year_str, TMDB_API_KEY)
+        st.image(poster_url, use_container_width=True)
+        
+        rating_str = f"★ {movie['評価']}" if pd.notnull(movie['評価']) and str(movie['評価']) != "" else "評価なし"
+        if movie.get('殿堂入り', False):
+            rating_str += " 🏆"
+        st.markdown(f"**評価:** {rating_str}")
+        
+    with col2:
+        overview, video_key = fetch_movie_details(movie["邦題"], movie["原題"], year_str, TMDB_API_KEY)
+        
+        st.markdown("### あらすじ")
+        st.write(overview)
+        
+        st.markdown("### 情報")
+        st.markdown(f"**監督:** {movie.get('監督', '不明')}")
+        st.markdown(f"**キャスト:** {movie.get('主要キャスト', '不明')}")
+        st.markdown(f"**ジャンル:** {movie.get('ジャンル', '不明')}")
+        st.markdown(f"**鑑賞日:** {movie.get('鑑賞日', '不明')} / **場所:** {movie.get('鑑賞場所', '不明')} / **方式:** {movie.get('上映方式', '不明')}")
+        
+    if video_key:
+        st.divider()
+        st.markdown("### 予告編")
+        st.video(f"https://www.youtube.com/watch?v={video_key}")
+
 
 # --- DATA HANDLING ---
 @st.cache_data(show_spinner=False)
@@ -270,8 +369,42 @@ def main():
         if filtered_df.empty:
             st.info("表示する映画がありません。「📊 ダッシュボード」の絞り込み条件を変更してください。")
         else:
+            # --- Pagination Logic ---
+            items_per_page = 48 # 6 columns * 8 rows
+            total_items = len(filtered_df)
+            total_pages = max(1, (total_items - 1) // items_per_page + 1)
+            
+            if 'gallery_page' not in st.session_state:
+                st.session_state.gallery_page = 1
+                
+            # Reset page if filter shrinks data
+            if st.session_state.gallery_page > total_pages:
+                st.session_state.gallery_page = 1
+                
+            current_page = st.session_state.gallery_page
+            start_idx = (current_page - 1) * items_per_page
+            end_idx = start_idx + items_per_page
+            
+            page_df = filtered_df.iloc[start_idx:end_idx]
+            
+            # Pagination UI Top
+            if total_pages > 1:
+                pag_col1, pag_col2, pag_col3 = st.columns([1, 2, 1])
+                with pag_col1:
+                    if st.button("⬅️ 前のページ", disabled=current_page <= 1, key="prev_top", use_container_width=True):
+                        st.session_state.gallery_page -= 1
+                        st.rerun()
+                with pag_col2:
+                    st.markdown(f"<div style='text-align: center; padding-top: 5px; font-weight: bold;'>ページ {current_page} / {total_pages}</div>", unsafe_allow_html=True)
+                with pag_col3:
+                    if st.button("次のページ ➡️", disabled=current_page >= total_pages, key="next_top", use_container_width=True):
+                        st.session_state.gallery_page += 1
+                        st.rerun()
+            
+            st.write("") # Spacing
+            
             cols_per_row = 6 # Up to 6 columns for a wide screen layout
-            rows = [filtered_df.iloc[i:i+cols_per_row] for i in range(0, len(filtered_df), cols_per_row)]
+            rows = [page_df.iloc[i:i+cols_per_row] for i in range(0, len(page_df), cols_per_row)]
             
             for row_df in rows:
                 cols = st.columns(cols_per_row)
@@ -308,6 +441,23 @@ def main():
                             <div class="poster-tags">{tags_html}</div>
                         </div>
                         """, unsafe_allow_html=True)
+                        if st.button("詳細・予告編", key=f"details_btn_{movie['No']}_{idx}_{current_page}", use_container_width=True):
+                            show_movie_details(movie)
+                            
+            # Pagination UI Bottom
+            if total_pages > 1:
+                st.divider()
+                pag_col1_b, pag_col2_b, pag_col3_b = st.columns([1, 2, 1])
+                with pag_col1_b:
+                    if st.button("⬅️ 前のページ", disabled=current_page <= 1, key="prev_bot", use_container_width=True):
+                        st.session_state.gallery_page -= 1
+                        st.rerun()
+                with pag_col2_b:
+                    st.markdown(f"<div style='text-align: center; padding-top: 5px; font-weight: bold;'>ページ {current_page} / {total_pages}</div>", unsafe_allow_html=True)
+                with pag_col3_b:
+                    if st.button("次のページ ➡️", disabled=current_page >= total_pages, key="next_bot", use_container_width=True):
+                        st.session_state.gallery_page += 1
+                        st.rerun()
                         
     # --- ADD NEW TAB ---
     if not READ_ONLY_MODE:
