@@ -418,27 +418,12 @@ def main():
                         if movie.get('殿堂入り', False):
                             rating_str += " 🏆"
                             
-                        # Format tags for Genre, Director & Cast
-                        tags_html = ""
-                        if pd.notnull(movie.get('ジャンル')) and str(movie['ジャンル']).strip():
-                            for genre_name in [g for g in str(movie['ジャンル']).replace(',', '、').split('、') if g.strip()]:
-                                tags_html += f'<div class="poster-tag" style="background-color: #3b2a50;">🏷️ {genre_name.strip()}</div>'
-                                
-                        if pd.notnull(movie.get('監督')) and str(movie['監督']).strip():
-                            tags_html += f'<div class="poster-tag">🎬 {str(movie["監督"]).strip()}</div>'
-                        if pd.notnull(movie.get('主要キャスト')) and str(movie['主要キャスト']).strip():
-                            # Cast string can be comma or Japanese comma separated
-                            cast_str = str(movie['主要キャスト']).replace(',', '、')
-                            for cast_name in [c for c in cast_str.split('、') if c.strip()]:
-                                tags_html += f'<div class="poster-tag">👤 {cast_name.strip()}</div>'
-                                
                         # HTML card for the poster
                         st.markdown(f"""
                         <div class="poster-container" title="原題: {movie.get('原題', 'なし')} | 公開: {movie.get('公開年', '不明')}">
                             <img src="{poster_url}" class="poster-img" style="width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px;" loading="lazy">
                             <div class="poster-title">{movie["邦題"]}</div>
                             <div class="poster-rating">{rating_str}</div>
-                            <div class="poster-tags">{tags_html}</div>
                         </div>
                         """, unsafe_allow_html=True)
                         if st.button("詳細・予告編", key=f"details_btn_{movie['No']}_{idx}_{current_page}", use_container_width=True):
