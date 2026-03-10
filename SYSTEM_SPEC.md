@@ -111,7 +111,22 @@ streamlit run app.py
 ```
 *(※ PDFからのデータを新規で全量抽出してCSV化する場合は、起動前に `python extract_data.py` を実行します)*
 
-## 8. 今後の拡張性・保守の注意点
+## 8. アクセスURL (公開・開発環境)
+
+本ダッシュボードは、手元のローカル開発環境（Google Antigravity）と、インターネット上に公開された本番環境（Hugging Face Spaces）の両方で動作・管理されています。
+
+- **🌐 公開ダッシュボード (閲覧専用・フルスクリーン)**
+  - URL: [https://happy0403-my-cinema-dashboard.hf.space](https://happy0403-my-cinema-dashboard.hf.space)
+  - 概要: 誰でもアクセスして映画データを閲覧・検索できる公開用URLです。「新規登録」機能はブロックされています。
+- **⚙️ Hugging Face 管理画面**
+  - URL: [https://huggingface.co/spaces/Happy0403/my-cinema-dashboard](https://huggingface.co/spaces/Happy0403/my-cinema-dashboard)
+  - 概要: アプリのソースコード(`app.py`等)やデータ(`movies_data.csv`)を手動で上書きアップデートしたり、設定を変更したりする管理者用の画面です。
+- **💻 ローカル開発環境 (Google Antigravity版)**
+  - 起動方法: Finderから `run_app.command` を実行
+  - URL: [http://localhost:8503](http://localhost:8503) (起動時にターミナルに表示されるLocal URL)
+  - 概要: 手元のMacでデータを直接的に追加・編集する（映画を「新規登録」する）ためのメイン環境です。
+
+## 9. 今後の拡張性・保守の注意点
 
 システムを今後拡張・改修していく際に配慮すべき、あるいはボトルネックとなり得るポイントは以下の通りです。
 
