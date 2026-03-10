@@ -210,7 +210,7 @@ def show_movie_details(movie):
         
         rating_str = f"★ {movie['評価']}" if pd.notnull(movie['評価']) and str(movie['評価']) != "" else "評価なし"
         if movie.get('殿堂入り', False):
-            rating_str += " 👑"
+            rating_str += " 🏆"
         st.markdown(f"**評価:** {rating_str}")
         
     with col2:
@@ -300,7 +300,7 @@ def main():
         with st.sidebar.expander("📊 評価基準について"):
             st.markdown("""
 <div style="font-size: 0.75rem; line-height: 1.4;">
-  <b>10点 👑 神</b><br><span style="vertical-align: top;">文句なし。</span><hr style="margin: 4px 0; border: none; border-top: 1px solid #444;">
+  <b>10点 🏆 神</b><br><span style="vertical-align: top;">文句なし。</span><hr style="margin: 4px 0; border: none; border-top: 1px solid #444;">
   <b>9点 👏 傑作</b><br><span style="vertical-align: top;">圧倒的な完成度。</span><hr style="margin: 4px 0; border: none; border-top: 1px solid #444;">
   <b>8点 👍 秀作</b><br><span style="vertical-align: top;">興奮して人に話したい。</span><hr style="margin: 4px 0; border: none; border-top: 1px solid #444;">
   <b>7点 😊 良作</b><br><span style="vertical-align: top;">満足度が高い。</span><hr style="margin: 4px 0; border: none; border-top: 1px solid #444;">
@@ -322,7 +322,7 @@ def main():
         selected_ratings = st.sidebar.multiselect("評価点数 (1〜10)", options=[str(i) for i in range(1, 11)], default=[])
         
         # Hall of Fame Filter
-        hof_only = st.sidebar.checkbox("殿堂入り作品のみ (*, 👑)")
+        hof_only = st.sidebar.checkbox("殿堂入り作品のみ (*, 🏆)")
         
         # Genre Filter
         all_genres_raw = df["ジャンル"].dropna().astype(str).str.cat(sep='、').split('、')
@@ -447,7 +447,7 @@ def main():
                         
                         rating_str = f"★ {movie['評価']}" if pd.notnull(movie['評価']) and str(movie['評価']) != "" else "評価なし"
                         if movie.get('殿堂入り', False):
-                            rating_str += " 👑"
+                            rating_str += " 🏆"
                             
                         # HTML card for the poster wrapped in an anchor link
                         st.markdown(f"""
@@ -516,7 +516,7 @@ def main():
                 with fmt_col2:
                     txt_fmt = st.text_input("その他の上映方式", help="リストにない場合はこちらに入力")
                 
-                new_hof = st.checkbox("殿堂入り作品 (👑)")
+                new_hof = st.checkbox("殿堂入り作品 (🏆)")
                 
             st.markdown("*は必須項目です")
             submitted = st.form_submit_button("登録する", type="primary")
