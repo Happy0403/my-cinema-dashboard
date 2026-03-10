@@ -299,19 +299,19 @@ def main():
         st.sidebar.info("※ 各作品の評価は Happy0403 の個人的な主観に基づくものです。")
         with st.sidebar.expander("📊 評価基準について"):
             st.markdown("""
-| 点数 | 区分 | あなたの感覚・定義 | おすすめ度合い |
-|:---:|:---|:---|:---:|
-| 10 | 神 | 文句なし。 | 👑 |
-| 9 | 傑作 | 圧倒的な完成度。 | 👏 |
-| 8 | 秀作 | 興奮して人に話したい。 | 👍 |
-| 7 | 良作 | 満足度が高い。 | 😊 |
-| 6 | 普通 | 楽しめたが、特筆すべき点はない。 | 😐 |
-| 5 | 暇つぶし | 記憶に残りにくい。 | 🤷‍♂️ |
-| 4 | 微妙 | 退屈。 | 😕 |
-| 3 | 苦痛 | 集中力が切れる。 | 😩 |
-| 2 | 時間の無駄 | 途中離脱レベル。 | 😪 |
-| 1 | 後悔 | 憤りすら感じる。 | 💀 |
-            """)
+<div style="font-size: 0.75rem; line-height: 1.4;">
+  <b>10点 👑 神</b><br><span style="vertical-align: top;">文句なし。</span><hr style="margin: 4px 0; border: none; border-top: 1px solid #444;">
+  <b>9点 👏 傑作</b><br><span style="vertical-align: top;">圧倒的な完成度。</span><hr style="margin: 4px 0; border: none; border-top: 1px solid #444;">
+  <b>8点 👍 秀作</b><br><span style="vertical-align: top;">興奮して人に話したい。</span><hr style="margin: 4px 0; border: none; border-top: 1px solid #444;">
+  <b>7点 😊 良作</b><br><span style="vertical-align: top;">満足度が高い。</span><hr style="margin: 4px 0; border: none; border-top: 1px solid #444;">
+  <b>6点 😐 普通</b><br><span style="vertical-align: top;">楽しめたが、特筆すべき点はない。</span><hr style="margin: 4px 0; border: none; border-top: 1px solid #444;">
+  <b>5点 🤷‍♂️ 暇つぶし</b><br><span style="vertical-align: top;">記憶に残りにくい。</span><hr style="margin: 4px 0; border: none; border-top: 1px solid #444;">
+  <b>4点 😕 微妙</b><br><span style="vertical-align: top;">退屈。</span><hr style="margin: 4px 0; border: none; border-top: 1px solid #444;">
+  <b>3点 😩 苦痛</b><br><span style="vertical-align: top;">集中力が切れる。</span><hr style="margin: 4px 0; border: none; border-top: 1px solid #444;">
+  <b>2点 😪 時間の無駄</b><br><span style="vertical-align: top;">途中離脱レベル。</span><hr style="margin: 4px 0; border: none; border-top: 1px solid #444;">
+  <b>1点 💀 後悔</b><br><span style="vertical-align: top;">憤りすら感じる。</span>
+</div>
+            """, unsafe_allow_html=True)
 
         # SIDEBAR FILTERS
         st.sidebar.header("🔍 絞り込み検索")
