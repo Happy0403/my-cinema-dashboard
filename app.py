@@ -148,6 +148,8 @@ def load_data(file_mtime):
             df['監督'] = ''
         if '主要キャスト' not in df.columns:
             df['主要キャスト'] = ''
+        if 'ジャンル' not in df.columns:
+            df['ジャンル'] = ''
         return df
     except FileNotFoundError:
         st.error(f"データファイルが見つかりません: {CSV_FILE}")
@@ -168,7 +170,7 @@ def main():
     
     if df.empty:
         st.warning("データがまだ存在しません。新しいデータを登録してください。")
-        df = pd.DataFrame(columns=["No", "邦題", "原題", "公開年", "評価", "殿堂入り", "鑑賞日", "鑑賞場所", "上映方式", "監督", "主要キャスト"])
+        df = pd.DataFrame(columns=["No", "邦題", "原題", "公開年", "評価", "殿堂入り", "鑑賞日", "鑑賞場所", "上映方式", "ジャンル", "監督", "主要キャスト"])
         
     # --- TABS ---
     if READ_ONLY_MODE:
@@ -192,6 +194,11 @@ def main():
         # Hall of Fame Filter
         hof_only = st.sidebar.checkbox("殿堂入り作品のみ (*, 🏆)")
         
+        # Genre Filter
+        all_genres_raw = df["ジャンル"].dropna().astype(str).str.cat(sep='、').split('、')
+        genres_list = sorted(list(set([g.strip() for g in all_genres_raw if g.strip()])))
+        selected_genres = st.sidebar.multiselect("ジャンル", options=genres_list, default=[])
+        
         # Format Filter
         formats = [f for f in df["上映方式"].unique() if f]
         selected_formats = st.sidebar.multiselect("上映方式", options=formats, default=[])
@@ -212,6 +219,10 @@ def main():
             
         if hof_only:
             filtered_df = filtered_df[filtered_df["殿堂入り"] == True]
+            
+        if selected_genres:
+            mask = filtered_df["ジャンル"].astype(str).apply(lambda x: any(g in x for g in selected_genres))
+            filtered_df = filtered_df[mask]
             
         if selected_formats:
             filtered_df = filtered_df[filtered_df["上映方式"].isin(selected_formats)]
@@ -274,8 +285,12 @@ def main():
                         if movie.get('殿堂入り', False):
                             rating_str += " 🏆"
                             
-                        # Format tags for Director & Cast
+                        # Format tags for Genre, Director & Cast
                         tags_html = ""
+                        if pd.notnull(movie.get('ジャンル')) and str(movie['ジャンル']).strip():
+                            for genre_name in [g for g in str(movie['ジャンル']).replace(',', '、').split('、') if g.strip()]:
+                                tags_html += f'<div class="poster-tag" style="background-color: #3b2a50;">🏷️ {genre_name.strip()}</div>'
+                                
                         if pd.notnull(movie.get('監督')) and str(movie['監督']).strip():
                             tags_html += f'<div class="poster-tag">🎬 {str(movie["監督"]).strip()}</div>'
                         if pd.notnull(movie.get('主要キャスト')) and str(movie['主要キャスト']).strip():
@@ -314,6 +329,7 @@ def main():
                 new_orig_title = st.text_input("原題", help="例: Interstellar")
                 new_year = st.text_input("公開年", help="例: 2014年")
                 new_rating = st.selectbox("評価 (1〜10) *", options=[str(i) for i in range(1, 11)][::-1], index=4)
+                new_genre = st.text_input("ジャンル", help="例: アクション、SF")
                 new_director = st.text_input("監督", help="例: クリストファー・ノーラン")
                 new_cast = st.text_input("主要キャスト", help="例: マシュー・マコノヒー、アン・ハサウェイ")
                 
@@ -359,6 +375,7 @@ def main():
                         "鑑賞日": new_date.strftime("%Y/%m/%d"),
                         "鑑賞場所": final_loc,
                         "上映方式": final_fmt,
+                        "ジャンル": new_genre,
                         "監督": new_director,
                         "主要キャスト": new_cast
                     }
