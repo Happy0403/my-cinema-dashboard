@@ -210,7 +210,7 @@ def show_movie_details(movie):
         
         rating_str = f"★ {movie['評価']}" if pd.notnull(movie['評価']) and str(movie['評価']) != "" else "評価なし"
         if movie.get('殿堂入り', False):
-            rating_str += " 🏆"
+            rating_str += " 👑"
         st.markdown(f"**評価:** {rating_str}")
         
     with col2:
@@ -295,6 +295,24 @@ def main():
         # Top Search Bar
         search_query = st.text_input("🔍 作品をフリーワード検索 (タイトル・監督・キャスト)", "", placeholder="例: クリストファー・ノーラン", key="main_search")
         
+        # SIDEBAR UI
+        st.sidebar.info("※ 各作品の評価は Happy0403 の個人的な主観に基づくものです。")
+        with st.sidebar.expander("📊 評価基準について"):
+            st.markdown("""
+| 点数 | 区分 | あなたの感覚・定義 | おすすめ度合い |
+|:---:|:---|:---|:---:|
+| 10 | 神 | 文句なし。 | 👑 |
+| 9 | 傑作 | 圧倒的な完成度。 | 👏 |
+| 8 | 秀作 | 興奮して人に話したい。 | 👍 |
+| 7 | 良作 | 満足度が高い。 | 😊 |
+| 6 | 普通 | 楽しめたが、特筆すべき点はない。 | 😐 |
+| 5 | 暇つぶし | 記憶に残りにくい。 | 🤷‍♂️ |
+| 4 | 微妙 | 退屈。 | 😕 |
+| 3 | 苦痛 | 集中力が切れる。 | 😩 |
+| 2 | 時間の無駄 | 途中離脱レベル。 | 😪 |
+| 1 | 後悔 | 憤りすら感じる。 | 💀 |
+            """)
+
         # SIDEBAR FILTERS
         st.sidebar.header("🔍 絞り込み検索")
         
@@ -304,7 +322,7 @@ def main():
         selected_ratings = st.sidebar.multiselect("評価点数 (1〜10)", options=[str(i) for i in range(1, 11)], default=[])
         
         # Hall of Fame Filter
-        hof_only = st.sidebar.checkbox("殿堂入り作品のみ (*, 🏆)")
+        hof_only = st.sidebar.checkbox("殿堂入り作品のみ (*, 👑)")
         
         # Genre Filter
         all_genres_raw = df["ジャンル"].dropna().astype(str).str.cat(sep='、').split('、')
@@ -429,7 +447,7 @@ def main():
                         
                         rating_str = f"★ {movie['評価']}" if pd.notnull(movie['評価']) and str(movie['評価']) != "" else "評価なし"
                         if movie.get('殿堂入り', False):
-                            rating_str += " 🏆"
+                            rating_str += " 👑"
                             
                         # HTML card for the poster wrapped in an anchor link
                         st.markdown(f"""
@@ -498,7 +516,7 @@ def main():
                 with fmt_col2:
                     txt_fmt = st.text_input("その他の上映方式", help="リストにない場合はこちらに入力")
                 
-                new_hof = st.checkbox("殿堂入り作品 (🏆)")
+                new_hof = st.checkbox("殿堂入り作品 (👑)")
                 
             st.markdown("*は必須項目です")
             submitted = st.form_submit_button("登録する", type="primary")
