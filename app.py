@@ -190,7 +190,7 @@ def main():
         selected_ratings = st.sidebar.multiselect("評価点数 (1〜10)", options=[str(i) for i in range(1, 11)], default=[])
         
         # Hall of Fame Filter
-        hof_only = st.sidebar.checkbox("殿堂入り作品のみ (*, ★)")
+        hof_only = st.sidebar.checkbox("殿堂入り作品のみ (*, 🏆)")
         
         # Format Filter
         formats = [f for f in df["上映方式"].unique() if f]
@@ -334,7 +334,7 @@ def main():
                 with fmt_col2:
                     txt_fmt = st.text_input("その他の上映方式", help="リストにない場合はこちらに入力")
                 
-                new_hof = st.checkbox("殿堂入り作品 (★)")
+                new_hof = st.checkbox("殿堂入り作品 (🏆)")
                 
             st.markdown("*は必須項目です")
             submitted = st.form_submit_button("登録する", type="primary")
