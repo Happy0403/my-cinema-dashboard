@@ -271,6 +271,19 @@ def main():
         st.warning("データがまだ存在しません。新しいデータを登録してください。")
         df = pd.DataFrame(columns=["No", "邦題", "原題", "公開年", "評価", "殿堂入り", "鑑賞日", "鑑賞場所", "上映方式", "ジャンル", "監督", "主要キャスト"])
         
+    # Check for movie clicks from query params
+    if "movie_no" in st.query_params:
+        try:
+            movie_no_str = st.query_params["movie_no"]
+            m_no = float(movie_no_str)
+            target_movie = df[df["No"] == m_no]
+            if not target_movie.empty:
+                # Clear the param before showing the dialog to prevent infinite loops
+                st.query_params.clear()
+                show_movie_details(target_movie.iloc[0])
+        except Exception:
+            pass
+            
     # --- TABS ---
     if READ_ONLY_MODE:
         tab_dashboard, tab_gallery = st.tabs(["📊 ダッシュボード", "🖼️ ギャラリー"])
@@ -418,16 +431,16 @@ def main():
                         if movie.get('殿堂入り', False):
                             rating_str += " 🏆"
                             
-                        # HTML card for the poster
+                        # HTML card for the poster wrapped in an anchor link
                         st.markdown(f"""
-                        <div class="poster-container" title="原題: {movie.get('原題', 'なし')} | 公開: {movie.get('公開年', '不明')}">
-                            <img src="{poster_url}" class="poster-img" style="width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px;" loading="lazy">
-                            <div class="poster-title">{movie["邦題"]}</div>
-                            <div class="poster-rating">{rating_str}</div>
-                        </div>
+                        <a href="?movie_no={movie['No']}" target="_self" style="text-decoration: none; color: inherit; display: block;">
+                            <div class="poster-container" title="原題: {movie.get('原題', 'なし')} | 公開: {movie.get('公開年', '不明')}">
+                                <img src="{poster_url}" class="poster-img" style="width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px;" loading="lazy">
+                                <div class="poster-title">{movie["邦題"]}</div>
+                                <div class="poster-rating">{rating_str}</div>
+                            </div>
+                        </a>
                         """, unsafe_allow_html=True)
-                        if st.button("詳細・予告編", key=f"details_btn_{movie['No']}_{idx}_{current_page}", use_container_width=True):
-                            show_movie_details(movie)
                             
             # Pagination UI Bottom
             if total_pages > 1:
